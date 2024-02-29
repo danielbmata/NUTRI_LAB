@@ -6,50 +6,68 @@ from django.contrib.messages import constants
 from django.contrib import messages, auth
 import os
 from django.conf import settings
-
+from .models import Ativacao
+from hashlib import sha256
 
 
 def cadastro(request):
-
-    # Verifica se o método da requisição é GET (normalmente o usuário acessando a página)
+    # Se o método da requisição for GET
     if request.method == "GET":
+        # Se o usuário já estiver autenticado
         if request.user.is_authenticated:
+            # Redireciona para a página inicial
             return redirect('/')
-        return render(request, 'cadastro.html')  # Retorna o template 'cadastro.html'
+        # Renderiza a página de cadastro
+        return render(request, 'cadastro.html')  
 
-    # Verifica se o método da requisição é POST (submissão do formulário de cadastro)
+    # Se o método da requisição for POST
     elif request.method == "POST":
+        # Obtém os dados do formulário
         username = request.POST.get('usuario')
         email = request.POST.get('email')
         senha = request.POST.get('senha')
         confirmar_senha = request.POST.get('confirmar_senha')
 
-        # Chama a função de validação de senha
+        # Verifica se a senha é válida
         if not password_is_valid(request, senha, confirmar_senha):
-            return redirect('/auth/cadastro')  # Redireciona de volta em caso de erro na senha
+            # Se não for, redireciona para a página de cadastro
+            return redirect('/auth/cadastro')  
 
         # Tenta criar um novo usuário
         try:
+            # Cria um novo usuário com os dados do formulário
             user = User.objects.create_user(username=username,
                                             email=email,
                                             password=senha,
-                                            is_active=False)  # Usuário criado inativo inicialmente
-            user.save()  # Salva o usuário no banco de dados
+                                            is_active=False)  
+            # Salva o usuário no banco de dados
+            user.save()  
+            
+            # Gera um token de ativação
+            token = sha256(f"{username}{email}".encode()).hexdigest()
+            # Cria um novo registro de ativação com o token e o usuário
+            ativacao = Ativacao(token=token, user=user)
+            # Salva o registro de ativação no banco de dados
+            ativacao.save()
             
             # Define o caminho para o template do email de confirmação de cadastro
             path_template = os.path.join(settings.BASE_DIR, 'autenticacao/templates/emails/cadastro_confirmado.html')
-            # Envia um email de confirmação de cadastro
+            
+            # Envia o email de confirmação de cadastro
             email_html(path_template, 'Cadastro confirmado', [email,], username=username)
-
-
-            
-            
+             
+            # Adiciona uma mensagem de sucesso
             messages.add_message(request, constants.SUCCESS, 'Usuário cadastrado com sucesso!')
-            return redirect('/auth/logar')  # Redireciona para a página de login após sucesso
+            # Redireciona para a página de login
+            return redirect('/auth/logar')  
 
-        except:  # Caso não seja possível criar o usuário (ex.: nome já existe)
+        # Se ocorrer algum erro
+        except:  
+            # Adiciona uma mensagem de erro
             messages.add_message(request, constants.ERROR, 'Erro interno do sistema')
-            return redirect('/auth/cadastro')  # Redireciona de volta para o cadastro
+            # Redireciona para a página de cadastro
+            return redirect('/auth/cadastro')
+
 
 
 # Define a função logar, que lida com as requisições de login
