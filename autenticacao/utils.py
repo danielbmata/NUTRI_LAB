@@ -1,15 +1,9 @@
 import re  # Importa o módulo de expressões regulares do Python
-
 from django.contrib import messages  # Importa o módulo de mensagens do Django, que permite exibir mensagens de uma requisição para outra
-
 from django.contrib.messages import constants  # Importa o módulo de constantes do Django, que define níveis de mensagens como DEBUG, INFO, SUCCESS, WARNING e ERROR
-
 from django.core.mail import EmailMultiAlternatives  # Importa a classe EmailMultiAlternatives do Django, que é usada para enviar emails com partes alternativas de texto e HTML
-
 from django.template.loader import render_to_string  # Importa a função render_to_string do Django, que carrega um template e o renderiza com um contexto
-
 from django.utils.html import strip_tags  # Importa a função strip_tags do Django, que remove todas as tags HTML de uma string
-
 from django.conf import settings  # Importa o módulo de configurações do Django, que permite acessar as configurações do projeto Django onde está o email
 
 
