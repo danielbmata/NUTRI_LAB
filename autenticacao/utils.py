@@ -10,7 +10,7 @@ from django.template.loader import render_to_string  # Importa a função render
 
 from django.utils.html import strip_tags  # Importa a função strip_tags do Django, que remove todas as tags HTML de uma string
 
-from django.conf import settings  # Importa o módulo de configurações do Django, que permite acessar as configurações do projeto Django
+from django.conf import settings  # Importa o módulo de configurações do Django, que permite acessar as configurações do projeto Django onde está o email
 
 
 # Função para verificar se a senha é válida
