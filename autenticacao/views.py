@@ -1,4 +1,4 @@
-from django.shortcuts import render, redirect
+from django.shortcuts import render, redirect, get_object_or_404
 from django.http import HttpResponse
 from .utils import password_is_valid, email_html
 from django.contrib.auth.models import User
@@ -56,7 +56,7 @@ def cadastro(request):
                 path_template = os.path.join(settings.BASE_DIR, 'autenticacao/templates/emails/cadastro_confirmado.html')
             
                 # Envia o email de confirmação de cadastro
-                email_html(path_template, 'Cadastro confirmado', [email,], username=username)
+                email_html(path_template, 'Cadastro confirmado', [email,], username=username, link_ativacao=f"127.0.0.1:8000/auth/ativar_conta/{token}")
              
                 # Adiciona uma mensagem de sucesso
                 messages.add_message(request, constants.SUCCESS, 'Usuário cadastrado com sucesso!')
@@ -74,7 +74,6 @@ def cadastro(request):
             messages.add_message(request, constants.ERROR, 'Erro interno do sistema')
             # Redireciona para a página de cadastro
             return redirect('/auth/cadastro')
-
 
 # Define a função logar, que lida com as requisições de login
 def logar(request):  
@@ -99,3 +98,33 @@ def logar(request):
 def sair(request):
     auth.logout(request)
     return redirect('/auth/logar')
+
+
+def ativar_conta(request, token):
+    # Busca o token no banco de dados, se não encontrar, retorna um erro 404
+    token = get_object_or_404(Ativacao, token=token)
+    
+    # Verifica se o token já foi usado
+    if token.ativo:
+        # Se o token já foi usado, adiciona uma mensagem de aviso
+        messages.add_message(request, constants.WARNING, 'Essa token já foi usado')
+        # Redireciona o usuário para a página de login
+        return redirect('/auth/logar')
+    
+    # Busca o usuário associado ao token
+    user = User.objects.get(username=token.user.username)
+    
+    # Ativa o usuário
+    user.is_active = True
+    user.save()
+    
+    # Marca o token como usado
+    token.ativo = True
+    token.save()
+    
+    # Adiciona uma mensagem de sucesso
+    messages.add_message(request, constants.SUCCESS, 'Conta ativa com sucesso')
+    
+    # Redireciona o usuário para a página de login
+    return redirect('/auth/logar')
+
