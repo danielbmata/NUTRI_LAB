@@ -35,31 +35,38 @@ def cadastro(request):
 
         # Tenta criar um novo usuário
         try:
-            # Cria um novo usuário com os dados do formulário
-            user = User.objects.create_user(username=username,
-                                            email=email,
-                                            password=senha,
-                                            is_active=False)  
-            # Salva o usuário no banco de dados
-            user.save()  
+            # Tenta obter o usuário pelo nome de usuário. Se o usuário não existir, ele será criado.
+            user, created = User.objects.get_or_create(username=username)  
             
-            # Gera um token de ativação
-            token = sha256(f"{username}{email}".encode()).hexdigest()
-            # Cria um novo registro de ativação com o token e o usuário
-            ativacao = Ativacao(token=token, user=user)
-            # Salva o registro de ativação no banco de dados
-            ativacao.save()
+            # Se o usuário foi criado, salva os dados do usuário e envia o email de confirmação.
+            if created:
+                user.email = email
+                user.set_password(senha)
+                user.is_active = False
+                user.save()  
             
-            # Define o caminho para o template do email de confirmação de cadastro
-            path_template = os.path.join(settings.BASE_DIR, 'autenticacao/templates/emails/cadastro_confirmado.html')
+                # Gera um token de ativação
+                token = sha256(f"{username}{email}".encode()).hexdigest()
+                # Cria um novo registro de ativação com o token e o usuário
+                ativacao = Ativacao(token=token, user=user)
+                # Salva o registro de ativação no banco de dados
+                ativacao.save()
             
-            # Envia o email de confirmação de cadastro
-            email_html(path_template, 'Cadastro confirmado', [email,], username=username)
+                # Define o caminho para o template do email de confirmação de cadastro
+                path_template = os.path.join(settings.BASE_DIR, 'autenticacao/templates/emails/cadastro_confirmado.html')
+            
+                # Envia o email de confirmação de cadastro
+                email_html(path_template, 'Cadastro confirmado', [email,], username=username)
              
-            # Adiciona uma mensagem de sucesso
-            messages.add_message(request, constants.SUCCESS, 'Usuário cadastrado com sucesso!')
-            # Redireciona para a página de login
-            return redirect('/auth/logar')  
+                # Adiciona uma mensagem de sucesso
+                messages.add_message(request, constants.SUCCESS, 'Usuário cadastrado com sucesso!')
+                # Redireciona para a página de login
+                return redirect('/auth/logar') 
+        
+            # Se o usuário já existir, adiciona uma mensagem de erro.
+            else:
+                messages.add_message(request, constants.ERROR, 'Já existe um usuário com este nome.') 
+                return redirect('/auth/cadastro')
 
         # Se ocorrer algum erro
         except:  
@@ -67,7 +74,6 @@ def cadastro(request):
             messages.add_message(request, constants.ERROR, 'Erro interno do sistema')
             # Redireciona para a página de cadastro
             return redirect('/auth/cadastro')
-
 
 
 # Define a função logar, que lida com as requisições de login
