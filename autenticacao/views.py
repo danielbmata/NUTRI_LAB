@@ -41,7 +41,23 @@ def cadastro(request):
 
 
         
+"""
+    Função responsável pela autenticação/login do usuário.
 
+    * Se o método da requisição for GET:
+        * Se o usuário já estiver autenticado, redireciona para a página inicial ('/')
+        * Senão, renderiza/exibe a página de login ('logar.html')
+
+    * Se o método da requisição for POST:
+        * Obtém o nome de usuário e a senha enviados no formulário
+        * Tenta efetuar a autenticação usando 'auth.authenticate' 
+        * Se a autenticação falhar (usuário não existe):
+            - Exibe uma mensagem de erro 
+            - Redireciona de volta para a página de login 
+        * Se a autenticação for bem-sucedida:
+            - Realiza o login do usuário utilizando 'auth.login'
+            - Redireciona para a página inicial ('/')
+"""
 
 def logar(request):
     if request.method == "GET":
@@ -61,6 +77,13 @@ def logar(request):
             
     return redirect('/')
 
+
+
+"""
+    Realiza o logout do usuário, desfazendo a sessão de autenticação.
+    * Utiliza 'auth.logout' para efetuar o logout
+    * Redireciona para a página de login ('/auth/logar')
+"""
 
 def sair(request):
     auth.logout(request)
