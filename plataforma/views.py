@@ -7,8 +7,12 @@ from .models import Pacientes
 
 @login_required(login_url='/auth/logar/')
 def pacientes(request):
-    if request.method == "GET":
-        return render(request, 'pacientes.html')
+    
+    
+    if request.method == "GET":       
+        pacientes = Pacientes.objects.filter(nutri=request.user)
+        return render(request, 'pacientes.html', {'pacientes': pacientes})
+    
     elif request.method == "POST":
         nome = request.POST.get('nome')
         sexo = request.POST.get('sexo')
@@ -29,6 +33,28 @@ def pacientes(request):
         if pacientes.exists():
             messages.add_message(request, constants.ERROR, 'Já existe um paciente com esse E-mail')
             return redirect('/pacientes/')
-                    
-        return HttpResponse(f"{nome}, {sexo}, {idade}, {email}, {telefone}")
         
+        
+        #criando o paciente no banco de dados
+        try:
+            paciente = Pacientes(nome=nome,
+                                sexo=sexo,
+                                idade=idade,
+                                email=email,
+                                telefone=telefone,
+                                nutri=request.user)
+            paciente.save()
+            
+            messages.add_message(request, constants.SUCCESS, 'Paciente cadastrado com sucesso')
+            return redirect('/pacientes/')
+        
+        except:
+            messages.add_message(request, constants.ERROR, 'Erro interno do sistema')
+            return redirect('/pacientes/')
+
+@login_required(login_url='/auth/logar/')
+def dados_paciente_listar(request):
+    if request.method == "GET":
+        pacientes = Pacientes.objects.filter(nutri=request.user)
+        return render(request, 'dados_paciente_listar.html', {'pacientes': pacientes})
+
