@@ -1,4 +1,4 @@
-from django.shortcuts import render, redirect
+from django.shortcuts import render, redirect, get_object_or_404
 from django.http import HttpResponse
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
@@ -57,8 +57,13 @@ def dados_paciente_listar(request):
     if request.method == "GET":
         pacientes = Pacientes.objects.filter(nutri=request.user)
         return render(request, 'dados_paciente_listar.html', {'pacientes': pacientes})
-    
+
 @login_required(login_url='/auth/logar/')
 def dados_paciente(request, id):
-    return HttpResponse(id)
-
+    paciente = get_object_or_404(Pacientes, id=id)
+    if not paciente.nutri == request.user:
+        messages.add_message(request, constants.ERROR, 'Esse paciente não é seu')
+        return redirect('/dados_paciente/')
+    
+    if request.method == "GET":
+        return render(request, 'dados_paciente.html', {'paciente': paciente})
