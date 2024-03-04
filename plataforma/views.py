@@ -3,7 +3,8 @@ from django.http import HttpResponse
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.contrib.messages import constants
-from .models import Pacientes
+from .models import Pacientes, DadosPaciente
+from datetime import datetime
 
 @login_required(login_url='/auth/logar/')
 def pacientes(request):
@@ -66,4 +67,31 @@ def dados_paciente(request, id):
         return redirect('/dados_paciente/')
     
     if request.method == "GET":
-        return render(request, 'dados_paciente.html', {'paciente': paciente})
+        dados_paciente = DadosPaciente.objects.filter(paciente=paciente)
+        return render(request, 'dados_paciente.html', {'paciente': paciente, 'dados_paciente': dados_paciente})
+    
+    elif request.method == "POST":
+        peso = request.POST.get('peso')
+        altura = request.POST.get('altura')
+        gordura = request.POST.get('gordura')
+        musculo = request.POST.get('musculo')
+        hdl = request.POST.get('hdl')
+        ldl = request.POST.get('ldl')
+        colesterol_total = request.POST.get('ctotal')
+        trigliceridios = request.POST.get('trigliceridios')
+        
+        paciente = DadosPaciente(paciente=paciente,
+                                    data=datetime.now(),
+                                    peso=peso,
+                                    altura=altura,
+                                    percentual_gordura=gordura,
+                                    percentual_musculo=musculo,
+                                    colesterol_hdl=hdl,
+                                    colesterol_ldl=ldl,
+                                    colesterol_total=colesterol_total,
+                                    trigliceridios=trigliceridios)
+        paciente.save()
+        
+        messages.add_message(request, constants.SUCCESS, 'Dados cadastrado com sucesso')
+        
+        return redirect('/dados_paciente/')
