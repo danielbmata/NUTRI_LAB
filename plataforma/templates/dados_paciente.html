@@ -34,9 +34,9 @@
             <th scope="col">% músculo</th>
         </tr>
     </thead>
-    
+
     <tbody>
-        {% for dado in dados_paciente  %}
+        {% for dado in dados_paciente %}
         <tr>
             <th scope="row">{{dado.peso}} Kg</th>
             <td>{{dado.altura}} cm</td>
@@ -46,6 +46,39 @@
         {% endfor %}
     </tbody>
 </table>
+
+<!--GRAFICO-->
+<div style="width: 60%;">
+    <canvas id="myChart"></canvas>
+</div>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<script>
+    fetch("/grafico_peso/{{paciente.id}}/", {
+        method: 'POST',
+    }).then(function (result) {
+        return result.json()
+    }).then(function (data_paciente) {
+        const data = {
+            labels: data_paciente['labels'],
+            datasets: [{
+                label: 'Peso paciente',
+                backgroundColor: 'rgb(255, 99, 132)',
+                borderColor: 'rgb(255, 99, 132)',
+                data: data_paciente['peso'],
+            }]
+        };
+        const config = {
+            type: 'line',
+            data: data,
+            options: {}
+        };
+        const myChart = new Chart(
+            document.getElementById('myChart'),
+            config
+        );
+    })
+</script>
 
 <!--MODAL-->
 <div class="modal fade" id="modal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
