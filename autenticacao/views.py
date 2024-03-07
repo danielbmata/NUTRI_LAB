@@ -92,7 +92,7 @@ def logar(request):
         else:  # Se a autenticação for bem-sucedida:
             auth.login(request, usuario)  # Faz login com o usuário
             
-    return redirect('/')  # Redireciona para a página inicial
+    return redirect('/pacientes')  # Redireciona para a página pacientes(quando logado)
 
 
 def sair(request):

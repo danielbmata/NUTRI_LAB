@@ -3,7 +3,7 @@ from django.http import HttpResponse, JsonResponse
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.contrib.messages import constants
-from .models import Pacientes, DadosPaciente
+from .models import Pacientes, DadosPaciente, Refeicao
 from datetime import datetime
 from django.views.decorators.csrf import csrf_exempt
 
@@ -99,7 +99,7 @@ def dados_paciente(request, id):
     
 @login_required(login_url='/auth/logar/')
 @csrf_exempt
-def grafico_peso(request, id):
+def grafico_peso(request, id):   
     paciente = Pacientes.objects.get(id=id)
     dados = DadosPaciente.objects.filter(paciente=paciente).order_by("data")
     
@@ -109,3 +109,45 @@ def grafico_peso(request, id):
             'labels': labels}
     
     return JsonResponse(data)
+
+@login_required(login_url='/auth/logar/')
+def plano_alimentar_listar(request):
+    if request.method == "GET":
+        pacientes = Pacientes.objects.filter(nutri=request.user)
+        return render(request, 'plano_alimentar_listar.html', {'pacientes': pacientes})
+
+@login_required(login_url='/auth/logar/')    
+def plano_alimentar(request, id):
+    paciente = get_object_or_404(Pacientes, id=id)
+    if not paciente.nutri == request.user:
+        messages.add_message(request, constants.ERROR, 'Esse paciente não é seu')
+        return redirect('/plano_alimentar_listar/')
+
+    if request.method == "GET":
+        return render(request, 'plano_alimentar.html', {'paciente': paciente})
+
+@login_required(login_url='/auth/logar/')    
+def refeicao(request, id_paciente):
+    paciente = get_object_or_404(Pacientes, id=id_paciente)
+    if not paciente.nutri == request.user:
+        messages.add_message(request, constants.ERROR, 'Esse paciente não é seu')
+        return redirect('/dados_paciente/')
+
+    if request.method == "POST":
+        titulo = request.POST.get('titulo')
+        horario = request.POST.get('horario')
+        carboidratos = request.POST.get('carboidratos')
+        proteinas = request.POST.get('proteinas')
+        gorduras = request.POST.get('gorduras')
+
+        r1 = Refeicao(paciente=paciente,
+                      titulo=titulo,
+                      horario=horario,
+                      carboidratos=carboidratos,
+                      proteinas=proteinas,
+                      gorduras=gorduras)
+
+        r1.save()
+
+        messages.add_message(request, constants.SUCCESS, 'Refeição cadastrada')
+        return redirect(f'/plano_alimentar/{id_paciente}')
