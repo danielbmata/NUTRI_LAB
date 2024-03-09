@@ -43,7 +43,7 @@ class Refeicao(models.Model):
 
 class Opcao(models.Model):
     refeicao = models.ForeignKey(Refeicao, on_delete=models.CASCADE)
-    imagem = models.ImageField(upload_to="opcao")
+    imagem = models.ImageField(upload_to="opcao", blank=True, null=True)
     descricao = models.TextField()
 
     def __str__(self):
