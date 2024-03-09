@@ -43,12 +43,12 @@
 <br>
 
 <div class="fundo-alimentar">
-
+    {% for re in refeicao %}
     <div class="refeicao">
         <div class="head-refeicao">
-            <span>Café da manhã</span>
+            <span>{{re.titulo}}</span>
 
-            <span style="float: right;">07:00h</span>
+            <span style="float: right;">{{re.horario}}</span>
 
         </div>
 
@@ -69,8 +69,12 @@
         </div>
 
     </div>
-
+    <br>
+    {% endfor %}
+    
 </div>
+
+    
 
 
 
